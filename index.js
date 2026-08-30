@@ -1,10 +1,23 @@
 const express = require("express");
 const axios = require("axios");
 const youtubeDl = require("youtube-dl-exec");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
+
+// Render-এর এনভায়রনমেন্ট ভেরিয়েবল থেকে স্বয়ংক্রিয়ভাবে cookies.txt ফাইল তৈরি করা
+const cookiePath = path.join(__dirname, "cookies.txt");
+if (process.env.YT_COOKIES) {
+  try {
+    fs.writeFileSync(cookiePath, process.env.YT_COOKIES);
+    console.log("Cookies file generated successfully from environment variable!");
+  } catch (err) {
+    console.error("Failed to generate cookies file:", err);
+  }
+}
 
 app.get("/", (req, res) => {
   res.json({
@@ -75,11 +88,13 @@ app.get("/download", async (req, res) => {
 
     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
+    // yt-dlp এ কুকিজ ফাইল সহ রিকোয়েস্ট পাঠানো
     const result = await youtubeDl(videoUrl, {
       dumpSingleJson: true,
       noPlaylist: true,
       noWarnings: true,
-      format: "bestaudio/best"
+      format: "bestaudio/best",
+      cookies: cookiePath
     });
 
     if (!result || !result.url) {
