@@ -9,5 +9,6 @@
     "axios": "^1.7.9",
     "express": "^4.21.2",
     "youtubei.js": "^13.3.0"
+				"youtube-dl-exec": "^3.0.16"
   }
 }
