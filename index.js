@@ -1,19 +1,10 @@
 const express = require("express");
 const axios = require("axios");
-const { Innertube } = require("youtubei.js");
+const youtubeDl = require("youtube-dl-exec");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.YOUTUBE_API_KEY;
-
-let youtube;
-
-async function getYoutube() {
-  if (!youtube) {
-    youtube = await Innertube.create();
-  }
-  return youtube;
-}
 
 app.get("/", (req, res) => {
   res.json({
@@ -82,27 +73,27 @@ app.get("/download", async (req, res) => {
       });
     }
 
-    const yt = await getYoutube();
-    const info = await yt.music.getInfo(videoId);
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-    const format = info.chooseFormat({
-      type: "audio",
-      quality: "best",
-      format: "mp4"
+    const result = await youtubeDl(videoUrl, {
+      dumpSingleJson: true,
+      noPlaylist: true,
+      noWarnings: true,
+      format: "bestaudio/best"
     });
 
-    if (!format) {
+    if (!result || !result.url) {
       return res.status(404).json({
         status: false,
-        message: "Audio format not found"
+        message: "Audio URL not found"
       });
     }
 
     res.json({
       status: true,
-      title: info.basic_info.title,
-      url: format.url,
-      mimeType: format.mime_type
+      title: result.title,
+      url: result.url,
+      mimeType: result.mime_type || "audio/webm"
     });
 
   } catch (error) {
@@ -111,7 +102,7 @@ app.get("/download", async (req, res) => {
     res.status(500).json({
       status: false,
       message: "Download error",
-      error: error.message
+      error: error.stderr || error.message
     });
   }
 });
