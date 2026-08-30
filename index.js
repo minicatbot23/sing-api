@@ -68,10 +68,10 @@ app.get("/download", async (req, res) => {
       return res.status(500).json({ status: false, message: "YouTube client not ready yet" });
     }
 
-    // ইনফো ফেচ করা
-    const info = await yt.getBasicInfo(videoId);
+    // অ্যান্ড্রয়েড ক্লায়েন্ট ব্যবহার করে ইনফো ফেচ করা যাতে স্ট্রিম ডেটা মিসিং না হয়
+    const info = await yt.getBasicInfo(videoId, 'ANDROID');
     
-    // ডিরেক্ট অডিও স্ট্রিম লিংক বের করা
+    // অডিও ফরম্যাট চুজ করা
     const format = info.chooseFormat({ type: 'audio', quality: 'best' });
 
     res.json({
